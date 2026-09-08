@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>BFS for TSP Visualization</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #eef7ff;
+    color: #222;
+}
+
+/* HEADER */
+
+header {
+    background: linear-gradient(135deg, #1565c0, #2e7d32);
+    color: white;
+    text-align: center;
+    padding: 25px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+
+header p {
+    margin: 8px 0 0;
+    font-size: 18px;
+}
+
+/* CONTAINER */
+
+.container {
+    width: 92%;
+    max-width: 1200px;
+    margin: 25px auto;
+}
+
+/* CARD */
+
+.card {
+    background: white;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 18px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+}
+
+h2 {
+    color: #1565c0;
+}
+
+/* BUTTONS */
+
+button {
+    border: none;
+    padding: 13px 20px;
+    margin: 5px;
+    border-radius: 8px;
+    background: #2e7d32;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+.next {
+    background: #1565c0;
+}
+
+.auto {
+    background: #ef6c00;
+}
+
+.reset {
+    background: #616161;
+}
+
+/* GRAPH */
+
+.graph {
+    position: relative;
+    height: 550px;
+    border: 2px solid #1565c0;
+    border-radius: 15px;
+    background: #f8fbff;
+    overflow: hidden;
+}
+
+svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.edge {
+    stroke: #999;
+    stroke-width: 3;
+}
+
+.edge.active {
+    stroke: #2e7d32;
+    stroke-width: 6;
+}
+
+.edge-text {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* CITY */
+
+.city {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+
+    border-radius: 50%;
+
+    background: #1976d2;
+    color: white;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-weight: bold;
+
+    border: 4px solid white;
+
+    box-shadow: 0 4px 12px #aaa;
+
+    z-index: 2;
+
+    transition: 0.5s;
+}
+
+.city.current {
+    background: #ef6c00;
+    transform: scale(1.25);
+}
+
+.city.visited {
+    background: #43a047;
+}
+
+.city.start {
+    background: #1565c0;
+    transform: scale(1.15);
+}
+
+.city.best {
+    background: #8e24aa;
+    transform: scale(1.2);
+}
+
+.city-name {
+    position: absolute;
+    top: 75px;
+    left: -30px;
+    width: 130px;
+    color: #222;
+    text-align: center;
+    font-size: 13px;
+}
+
+/* WORKING */
+
+.working {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.info {
+    background: #f5f7fa;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.info h3 {
+    color: #1565c0;
+}
+
+.steps {
+    height: 420px;
+    overflow-y: auto;
+
+    background: #111827;
+    color: white;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    font-family: Consolas, monospace;
+}
+
+.step {
+    background: #1f2937;
+    margin-bottom: 10px;
+    padding: 14px;
+    border-left: 5px solid #43a047;
+    border-radius: 5px;
+}
+
+/* RESULT */
+
+.result {
+    margin-top: 20px;
+    padding: 20px;
+
+    background: #e8f5e9;
+
+    border-left: 7px solid #2e7d32;
+
+    border-radius: 10px;
+}
+
+.result h2 {
+    color: #2e7d32;
+}
+
+/* FORMULA */
+
+.formula {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 17px;
+}
+
+/* TABLE */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th,
+td {
+    border: 1px solid #bbb;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background: #1565c0;
+    color: white;
+}
+
+@media(max-width:800px) {
+
+    .working {
+        grid-template-columns: 1fr;
+    }
+
+    .graph {
+        height: 500px;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<header>
+
+<h1>🚗 BFS for Travelling Salesman Problem</h1>
+
+<p>
+Breadth First Search – TSP Step-by-Step Visualization
+</p>
+
+</header>
+
+
+<div class="container">
+
+
+<!-- INTRODUCTION -->
+
+<div class="card">
+
+<h2>📘 BFS for TSP</h2>
+
+<p>
+The Travelling Salesman Problem (TSP) asks us to find the
+minimum-cost tour that visits every city exactly once and
+returns to the starting city.
+</p>
+
+<div class="formula">
+
+<b>BFS idea:</b>
+
+<br><br>
+
+Start with the starting city.
+
+<br>
+
+Generate all possible next cities.
+
+<br>
+
+Store partial paths in a <b>Queue</b>.
+
+<br>
+
+Expand paths level-by-level.
+
+<br>
+
+When all cities are visited, return to the start.
+
+<br><br>
+
+<b>Finally select the tour having minimum distance.</b>
+
+</div>
+
+<br>
+
+<button onclick="runBFS()">
+▶ Run BFS
+</button>
+
+<button class="next" onclick="nextStep()">
+Next Step
+</button>
+
+<button class="auto" onclick="automatic()">
+▶ Run Automatically
+</button>
+
+<button class="reset" onclick="resetPage()">
+Reset
+</button>
+
+</div>
+
+
+<!-- DISTANCE MATRIX -->
+
+<div class="card">
+
+<h2>📊 Distance Matrix</h2>
+
+<table>
+
+<thead>
+
+<tr>
+<th>City</th>
+<th>Vijayawada</th>
+<th>Guntur</th>
+<th>Eluru</th>
+<th>Rajahmundry</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+<td>Vijayawada</td>
+<td>0</td>
+<td>35</td>
+<td>65</td>
+<td>160</td>
+</tr>
+
+<tr>
+<td>Guntur</td>
+<td>35</td>
+<td>0</td>
+<td>70</td>
+<td>180</td>
+</tr>
+
+<tr>
+<td>Eluru</td>
+<td>65</td>
+<td>70</td>
+<td>0</td>
+<td>95</td>
+</tr>
+
+<tr>
+<td>Rajahmundry</td>
+<td>160</td>
+<td>180</td>
+<td>95</td>
+<td>0</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<!-- GRAPH -->
+
+<div class="card">
+
+<h2 style="text-align:center">
+🗺️ TSP City Graph
+</h2>
+
+<div class="graph" id="graph">
+
+<svg id="svg"></svg>
+
+</div>
+
+<p>
+🔵 City &nbsp;&nbsp;
+🟠 Current City &nbsp;&nbsp;
+🟢 Visited &nbsp;&nbsp;
+🟣 Best Tour
+</p>
+
+</div>
+
+
+<!-- WORKING -->
+
+<div class="card">
+
+<h2>⚙️ BFS Algorithm Working</h2>
+
+<div class="working">
+
+
+<!-- INFORMATION -->
+
+<div class="info">
+
+<h3 id="currentNode">
+Waiting...
+</h3>
+
+<hr>
+
+<h3>Queue</h3>
+
+<p id="queue">
+-
+</p>
+
+<h3>Current Path</h3>
+
+<p id="path">
+-
+</p>
+
+<h3>Distance</h3>
+
+<p id="distance">
+0 km
+</p>
+
+<h3>Visited Cities</h3>
+
+<p id="visited">
+-
+</p>
+
+<h3>Complete Tours</h3>
+
+<p id="tourCount">
+0
+</p>
+
+</div>
+
+
+<!-- STEPS -->
+
+<div>
+
+<h3>📋 Step-by-Step BFS Execution</h3>
+
+<div class="steps" id="steps">
+
+Click <b>Run BFS</b> to start.
+
+</div>
+
+</div>
+
+</div>
+
+
+<div id="result"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   CITY DATA
+===================================================== */
+
+const cities = {
+
+    Vijayawada: {
+        x: 18,
+        y: 55
+    },
+
+    Guntur: {
+        x: 25,
+        y: 20
+    },
+
+    Eluru: {
+        x: 52,
+        y: 18
+    },
+
+    Rajahmundry: {
+        x: 80,
+        y: 50
+    }
+
+};
+
+
+/* =====================================================
+   DISTANCE MATRIX
+===================================================== */
+
+const distance = {
+
+    Vijayawada: {
+        Vijayawada: 0,
+        Guntur: 35,
+        Eluru: 65,
+        Rajahmundry: 160
+    },
+
+    Guntur: {
+        Vijayawada: 35,
+        Guntur: 0,
+        Eluru: 70,
+        Rajahmundry: 180
+    },
+
+    Eluru: {
+        Vijayawada: 65,
+        Guntur: 70,
+        Eluru: 0,
+        Rajahmundry: 95
+    },
+
+    Rajahmundry: {
+        Vijayawada: 160,
+        Guntur: 180,
+        Eluru: 95,
+        Rajahmundry: 0
+    }
+
+};
+
+
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+let steps = [];
+
+let currentStep = 0;
+
+let bestTour = null;
+
+let bestDistance = Infinity;
+
+
+/* =====================================================
+   DRAW GRAPH
+===================================================== */
+
+function drawGraph() {
+
+    const graph =
+        document.getElementById("graph");
+
+    const svg =
+        document.getElementById("svg");
+
+    svg.innerHTML = "";
+
+    graph.querySelectorAll(".city")
+        .forEach(x => x.remove());
+
+
+    const width = graph.clientWidth;
+
+    const height = graph.clientHeight;
+
+
+    /* Draw all roads */
+
+    const cityNames =
+        Object.keys(cities);
+
+
+    for(let i = 0; i < cityNames.length; i++) {
+
+        for(let j = i + 1; j < cityNames.length; j++) {
+
+            const a = cityNames[i];
+
+            const b = cityNames[j];
+
+            const A = cities[a];
+
+            const B = cities[b];
+
+
+            const line =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "line"
+                );
+
+
+            line.setAttribute(
+                "x1",
+                A.x / 100 * width
+            );
+
+            line.setAttribute(
+                "y1",
+                A.y / 100 * height
+            );
+
+            line.setAttribute(
+                "x2",
+                B.x / 100 * width
+            );
+
+            line.setAttribute(
+                "y2",
+                B.y / 100 * height
+            );
+
+
+            line.classList.add("edge");
+
+
+            line.id =
+                "edge-" +
+                a +
+                "-" +
+                b;
+
+
+            svg.appendChild(line);
+
+
+            /* Distance */
+
+            const text =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "text"
+                );
+
+
+            text.setAttribute(
+                "x",
+                ((A.x + B.x) / 2) /
+                100 * width
+            );
+
+            text.setAttribute(
+                "y",
+                ((A.y + B.y) / 2) /
+                100 * height
+            );
+
+
+            text.classList.add(
+                "edge-text"
+            );
+
+
+            text.textContent =
+                distance[a][b] +
+                " km";
+
+
+            svg.appendChild(text);
+
+        }
+
+    }
+
+
+    /* Draw cities */
+
+    Object.entries(cities).forEach(
+        ([name,data]) => {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "city";
+
+
+            div.id =
+                "city-" + name;
+
+
+            div.style.left =
+                `calc(${data.x}% - 35px)`;
+
+
+            div.style.top =
+                `calc(${data.y}% - 35px)`;
+
+
+            div.innerHTML =
+                name.substring(0,3) +
+
+                `<span class="city-name">
+                    ${name}
+                </span>`;
+
+
+            graph.appendChild(div);
+
+        }
+    );
+
+}
+
+
+drawGraph();
+
+window.addEventListener(
+    "resize",
+    drawGraph
+);
+
+
+/* =====================================================
+   BFS FOR TSP
+===================================================== */
+
+function runBFS() {
+
+    steps = [];
+
+    currentStep = 0;
+
+    bestTour = null;
+
+    bestDistance = Infinity;
+
+
+    clearGraph();
+
+
+    /*
+       Starting city
+    */
+
+    const start =
+        "Vijayawada";
+
+
+    /*
+       BFS QUEUE
+
+       Each item contains:
+
+       path
+       distance
+    */
+
+    let queue = [
+
+        {
+            path: [start],
+
+            distance: 0
+        }
+
+    ];
+
+
+    /*
+       BFS continues
+       until queue is empty
+    */
+
+    while(queue.length > 0) {
+
+
+        /*
+           Remove first item
+
+           FIFO
+        */
+
+        const current =
+            queue.shift();
+
+
+        const path =
+            current.path;
+
+
+        const currentDistance =
+            current.distance;
+
+
+        /*
+           Save BFS step
+        */
+
+        steps.push({
+
+            path: [...path],
+
+            distance: currentDistance,
+
+            queue:
+                queue.map(
+                    item =>
+                    item.path.join(" → ")
+                    + " (" +
+                    item.distance +
+                    " km)"
+                ),
+
+            type: "expand"
+
+        });
+
+
+        /*
+           Check if all cities
+           have been visited
+        */
+
+        if(path.length ===
+            Object.keys(cities).length) {
+
+
+            /*
+               Return to start
+            */
+
+            const last =
+                path[path.length - 1];
+
+
+            const returnCost =
+                distance[last][start];
+
+
+            const total =
+                currentDistance +
+                returnCost;
+
+
+            const completeTour =
+                [
+                    ...path,
+                    start
+                ];
+
+
+            /*
+               Save complete tour
+            */
+
+            steps.push({
+
+                path: completeTour,
+
+                distance: total,
+
+                queue:
+                    queue.map(
+                        item =>
+                        item.path.join(" → ")
+                    ),
+
+                type: "tour",
+
+                tour: completeTour,
+
+                total: total
+
+            });
+
+
+            /*
+               Update best solution
+            */
+
+            if(total < bestDistance) {
+
+                bestDistance =
+                    total;
+
+                bestTour =
+                    completeTour;
+
+            }
+
+
+            continue;
+
+        }
+
+
+        /*
+           Generate next cities
+        */
+
+        Object.keys(cities).forEach(
+            nextCity => {
+
+
+                /*
+                   Don't visit a city
+                   twice before returning
+                */
+
+                if(!path.includes(nextCity)) {
+
+
+                    const newDistance =
+                        currentDistance +
+                        distance[
+                            path[path.length - 1]
+                        ][nextCity];
+
+
+                    queue.push({
+
+                        path:
+                            [
+                                ...path,
+                                nextCity
+                            ],
+
+                        distance:
+                            newDistance
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /*
+       Final result step
+    */
+
+    steps.push({
+
+        type: "final",
+
+        tour: bestTour,
+
+        total: bestDistance
+
+    });
+
+
+    showStep();
+
+}
+
+
+/* =====================================================
+   SHOW STEP
+===================================================== */
+
+function showStep() {
+
+    if(currentStep >= steps.length) {
+
+        finish();
+
+        return;
+
+    }
+
+
+    const step =
+        steps[currentStep];
+
+
+    const box =
+        document.getElementById(
+            "steps"
+        );
+
+
+    /*
+       FINAL STEP
+    */
+
+    if(step.type === "final") {
+
+        finish();
+
+        return;
+
+    }
+
+
+    /*
+       Current Node
+    */
+
+    const currentCity =
+        step.path[
+            step.path.length - 1
+        ];
+
+
+    document.getElementById(
+        "currentNode"
+    ).innerHTML =
+        "Current City: " +
+        currentCity;
+
+
+    /*
+       Current path
+    */
+
+    document.getElementById(
+        "path"
+    ).innerHTML =
+        step.path.join(" → ");
+
+
+    /*
+       Distance
+    */
+
+    document.getElementById(
+        "distance"
+    ).innerHTML =
+        step.distance +
+        " km";
+
+
+    /*
+       Visited
+    */
+
+    document.getElementById(
+        "visited"
+    ).innerHTML =
+        step.path.join(" → ");
+
+
+    /*
+       Queue
+    */
+
+    document.getElementById(
+        "queue"
+    ).innerHTML =
+        step.queue.length
+        ? step.queue.join("<br>")
+        : "Empty";
+
+
+    /*
+       COMPLETE TOUR
+    */
+
+    if(step.type === "tour") {
+
+        document.getElementById(
+            "tourCount"
+        ).innerHTML =
+            parseInt(
+                document.getElementById(
+                    "tourCount"
+                ).innerHTML
+            ) + 1;
+
+    }
+
+
+    /*
+       STEP EXPLANATION
+    */
+
+    let explanation = "";
+
+
+    if(step.type === "expand") {
+
+        explanation =
+
+            `BFS removes the first path
+             from the Queue.
+
+             <br><br>
+
+             Current Path:
+             <b>
+             ${step.path.join(" → ")}
+             </b>
+
+             <br><br>
+
+             Distance so far:
+             <b>
+             ${step.distance} km
+             </b>
+
+             <br><br>
+
+             BFS now generates all
+             unvisited cities and adds
+             them to the Queue.`;
+
+    }
+
+
+    if(step.type === "tour") {
+
+        explanation =
+
+            `All cities have been visited.
+
+             <br><br>
+
+             Returning to Vijayawada:
+
+             <br><br>
+
+             Tour:
+             <b>
+             ${step.tour.join(" → ")}
+             </b>
+
+             <br><br>
+
+             Total Distance:
+             <b>
+             ${step.total} km
+             </b>`;
+
+    }
+
+
+    /*
+       Add step to display
+    */
+
+    box.innerHTML +=
+
+        `<div class="step">
+
+        <b>STEP ${currentStep + 1}</b>
+
+        <br><br>
+
+        ${explanation}
+
+        <br><br>
+
+        <b>QUEUE:</b>
+
+        <br>
+
+        ${
+            step.queue.length
+            ? step.queue.join("<br>")
+            : "Empty"
+        }
+
+        </div>`;
+
+
+    box.scrollTop =
+        box.scrollHeight;
+
+
+    /*
+       Update graph
+    */
+
+    updateGraph(step);
+
+
+    currentStep++;
+
+}
+
+
+/* =====================================================
+   NEXT STEP
+===================================================== */
+
+function nextStep() {
+
+    if(steps.length === 0) {
+
+        alert(
+            "Click Run BFS first."
+        );
+
+        return;
+
+    }
+
+    showStep();
+
+}
+
+
+/* =====================================================
+   AUTOMATIC
+===================================================== */
+
+function automatic() {
+
+    if(steps.length === 0) {
+
+        runBFS();
+
+    }
+
+
+    const timer =
+        setInterval(() => {
+
+            if(
+                currentStep >=
+                steps.length
+            ) {
+
+                clearInterval(timer);
+
+                finish();
+
+                return;
+
+            }
+
+            showStep();
+
+        }, 1200);
+
+}
+
+
+/* =====================================================
+   UPDATE GRAPH
+===================================================== */
+
+function updateGraph(step) {
+
+    document
+        .querySelectorAll(".city")
+        .forEach(city => {
+
+            city.classList.remove(
+                "current",
+                "visited",
+                "best",
+                "start"
+            );
+
+        });
+
+
+    /*
+       Visited cities
+    */
+
+    step.path.forEach(city => {
+
+        const element =
+            document.getElementById(
+                "city-" + city
+            );
+
+
+        if(element)
+            element.classList.add(
+                "visited"
+            );
+
+    });
+
+
+    /*
+       Start city
+    */
+
+    const start =
+        document.getElementById(
+            "city-Vijayawada"
+        );
+
+
+    if(start)
+        start.classList.add(
+            "start"
+        );
+
+
+    /*
+       Current city
+    */
+
+    const current =
+        step.path[
+            step.path.length - 1
+        ];
+
+
+    const currentElement =
+        document.getElementById(
+            "city-" + current
+        );
+
+
+    if(currentElement) {
+
+        currentElement.classList.remove(
+            "visited"
+        );
+
+        currentElement.classList.add(
+            "current"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   FINAL RESULT
+===================================================== */
+
+function finish() {
+
+    if(!bestTour)
+        return;
+
+
+    /*
+       Mark best cities
+    */
+
+    document
+        .querySelectorAll(".city")
+        .forEach(city => {
+
+            city.classList.remove(
+                "current",
+                "visited"
+            );
+
+        });
+
+
+    bestTour.forEach(city => {
+
+        const element =
+            document.getElementById(
+                "city-" + city
+            );
+
+
+        if(element)
+            element.classList.add(
+                "best"
+            );
+
+    });
+
+
+    /*
+       Highlight best edges
+    */
+
+    for(let i = 0;
+        i < bestTour.length - 1;
+        i++) {
+
+        const a =
+            bestTour[i];
+
+        const b =
+            bestTour[i + 1];
+
+
+        const id1 =
+            "edge-" + a + "-" + b;
+
+        const id2 =
+            "edge-" + b + "-" + a;
+
+
+        const edge =
+            document.getElementById(id1)
+            ||
+            document.getElementById(id2);
+
+
+        if(edge)
+            edge.classList.add(
+                "active"
+            );
+
+    }
+
+
+    /*
+       Result
+    */
+
+    document.getElementById(
+        "result"
+    ).innerHTML =
+
+        `<div class="result">
+
+        <h2>
+        ✅ BFS for TSP Completed
+        </h2>
+
+        <p>
+        <b>Best Tour:</b>
+        </p>
+
+        <p style="font-size:20px">
+
+        ${bestTour.join(" → ")}
+
+        </p>
+
+        <p>
+        <b>Minimum Distance:</b>
+        ${bestDistance} km
+        </p>
+
+        <p>
+        <b>Algorithm:</b>
+        Breadth First Search
+        </p>
+
+        <p>
+        <b>Number of Complete Tours:</b>
+        ${countTours()}
+        </p>
+
+        </div>`;
+
+}
+
+
+/* =====================================================
+   COUNT TOURS
+===================================================== */
+
+function countTours() {
+
+    return steps.filter(
+        step =>
+        step.type === "tour"
+    ).length;
+
+}
+
+
+/* =====================================================
+   CLEAR
+===================================================== */
+
+function clearGraph() {
+
+    document
+        .querySelectorAll(".city")
+        .forEach(city => {
+
+            city.classList.remove(
+                "current",
+                "visited",
+                "best",
+                "start"
+            );
+
+        });
+
+
+    document
+        .querySelectorAll(".edge")
+        .forEach(edge => {
+
+            edge.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    document.getElementById(
+        "steps"
+    ).innerHTML =
+        "Click Run BFS to start.";
+
+
+    document.getElementById(
+        "result"
+    ).innerHTML = "";
+
+
+    document.getElementById(
+        "currentNode"
+    ).innerHTML =
+        "Waiting...";
+
+
+    document.getElementById(
+        "queue"
+    ).innerHTML =
+        "-";
+
+
+    document.getElementById(
+        "path"
+    ).innerHTML =
+        "-";
+
+
+    document.getElementById(
+        "distance"
+    ).innerHTML =
+        "0 km";
+
+
+    document.getElementById(
+        "visited"
+    ).innerHTML =
+        "-";
+
+
+    document.getElementById(
+        "tourCount"
+    ).innerHTML =
+        "0";
+
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+function resetPage() {
+
+    steps = [];
+
+    currentStep = 0;
+
+    bestTour = null;
+
+    bestDistance = Infinity;
+
+    clearGraph();
+
+    drawGraph();
+
+}
+
+</script>
+
+</body>
+</html>
